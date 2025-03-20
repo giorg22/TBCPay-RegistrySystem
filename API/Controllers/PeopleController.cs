@@ -1,4 +1,5 @@
-﻿using Application.Services;
+﻿using Application.DTOs;
+using Application.Services;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,6 +14,34 @@ namespace API.Controllers
         public PeopleController(PersonService service)
         {
             _service = service;
+        }
+
+        [HttpPost("{personId}/relationships")]
+        public async Task<IActionResult> AddRelationship(int personId, [FromBody] RelationshipDto request)
+        {
+            await _service.AddRelationshipAsync(personId, request.RelatedPersonId, request.RelationshipType);
+            return Ok("Relationship added successfully.");
+        }
+
+        [HttpDelete("{personId}/relationships/{relatedPersonId}")]
+        public async Task<IActionResult> RemoveRelationship(int personId, int relatedPersonId)
+        {
+            await _service.RemoveRelationshipAsync(personId, relatedPersonId);
+            return Ok("Relationship removed successfully.");
+        }
+
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<Person>>> Search([FromQuery] string? firstName, [FromQuery] string? lastName, [FromQuery] string? personalNumber, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var people = await _service.SearchAsync(firstName, lastName, personalNumber, page, pageSize);
+            return Ok(people);
+        }
+
+        [HttpPost("advanced-search")]
+        public async Task<ActionResult<IEnumerable<Person>>> AdvancedSearch([FromBody] PersonSearchCriteria criteria, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var people = await _service.AdvancedSearchAsync(criteria, page, pageSize);
+            return Ok(people);
         }
 
         [HttpGet]
